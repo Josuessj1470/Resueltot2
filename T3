@@ -1,0 +1,96 @@
+import copy
+
+laberinto = [
+    ['F',  1,  1,  1,  0,  1,  1,  1,  1],
+    [ -2,  0,  0, -1,  0,  1,  0,  1,  0],
+    [  1,  1,  0,  1,  1,  1,  0,  1,  0],
+    [  0,  1,  0, -1,  0,  0,  0, -1,  0],
+    [  1,  1,  1,  1,  1,  1,  1,  1,  0],
+    [ -1,  0,  0,  0,  0,  0,  0,  1,  1],
+    [  1,  1,  1,  1, -1,  1,  1,  1,  0],
+    [  1,  0,  0,  1,  0,  1,  0,  1,  0],
+    ['I',  1, -1,  1,  1,  1,  0,  1,  1],
+]
+
+FILAS = 9
+COLS  = 9
+INICIO = (8, 0)
+FIN    = (0, 0)
+MOVIMIENTOS = [(1,0),(0,1),(-1,0),(0,-1)]
+NOMBRES     = ["abajo","derecha","arriba","izquierda"]
+
+
+def valor(r, c):
+    v = laberinto[r][c]
+    return 1 if v in ('I','F') else v
+
+
+def mostrar_laberinto(path=None):
+    p = set(path) if path else set()
+    for r in range(FILAS):
+        fila = ""
+        for c in range(COLS):
+            if (r,c) in p:
+                fila += "  * "
+            else:
+                v = laberinto[r][c]
+                fila += f"{str(v):>3} "
+        print(fila)
+    print()
+
+
+def backtrack(r, c, vidas, visitados, camino, solucion):
+    if (r, c) == FIN:
+        solucion.append(copy.deepcopy(camino))
+        print(f"  >>> META ALCANZADA en {FIN} con {vidas} vidas restantes")
+        return True
+
+    for (dr, dc), nombre in zip(MOVIMIENTOS, NOMBRES):
+        nr, nc = r+dr, c+dc
+
+        if not (0 <= nr < FILAS and 0 <= nc < COLS):
+            continue
+        if valor(nr, nc) == 0:
+            continue
+        if (nr, nc) in visitados:
+            continue
+
+        nuevas_vidas = vidas + valor(nr, nc)
+
+        if nuevas_vidas <= 0:
+            print(f"  INVIABLE [{nr},{nc}] ({nombre}) vidas: {vidas}->{nuevas_vidas}")
+            continue
+
+        camino.append((nr, nc))
+        visitados.add((nr, nc))
+        print(f"  Avanzo a [{nr},{nc}] ({nombre}) vidas: {vidas}->{nuevas_vidas}  camino: {camino}")
+
+        if backtrack(nr, nc, nuevas_vidas, visitados, camino, solucion):
+            return True
+
+        print(f"  Retrocedo de [{nr},{nc}], vuelvo a [{r},{c}]")
+        camino.pop()
+        visitados.remove((nr, nc))
+
+    return False
+
+print("LABERINTO ORIGINAL:")
+mostrar_laberinto()
+
+camino    = [INICIO]
+visitados = {INICIO}
+solucion  = []
+
+print("PASO A PASO:")
+encontrado = backtrack(INICIO[0], INICIO[1], 3, visitados, camino, solucion)
+
+print("\n" + "="*40)
+if encontrado:
+    print("RESULTADO: El raton LOGRO salir!")
+    print(f"Celdas recorridas: {len(solucion[0])}")
+    print(f"Camino: {solucion[0]}")
+    print("\nLABERINTO CON LA RUTA SOLUCION (* = camino):")
+    mostrar_laberinto(solucion[0])
+else:
+    print("RESULTADO: El raton NO pudo salir.")
+print("="*40)
