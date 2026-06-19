@@ -1,0 +1,1 @@
+cd ~/Documents/mi_proyecto
